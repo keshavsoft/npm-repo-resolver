@@ -1,5 +1,5 @@
 {
-  "name": "@keshavsoft/npm-repo-resolver",
+  "name": "npm-repo-resolver",
   "version": "1.0.0",
   "description": "Recursively trace npm dependencies and discover authentic upstream Git repository remotes as a verified JSON Source of Truth.",
   "type": "module",

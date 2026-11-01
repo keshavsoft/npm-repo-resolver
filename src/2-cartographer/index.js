@@ -73,3 +73,4 @@ export async function buildDependencyTree(packageSpec) {
     await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
   }
 }
+

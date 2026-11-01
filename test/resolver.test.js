@@ -81,3 +81,4 @@ test("Detective: infers missing repositories and deduplicates", () => {
   assert.equal(child.repoUrl, "https://github.com/myorg/child-pkg");
   assert.equal(child.isInferred, true);
 });
+

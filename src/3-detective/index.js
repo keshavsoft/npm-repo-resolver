@@ -91,3 +91,4 @@ export function resolveRepositories(dependencies, defaultOwner = null) {
 
   return Array.from(unique.values());
 }
+

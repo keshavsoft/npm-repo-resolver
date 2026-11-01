@@ -42,3 +42,4 @@ export function parsePackageSpec(packageSpec) {
 export async function validatePackage(packageSpec) {
   return parsePackageSpec(packageSpec);
 }
+

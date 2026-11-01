@@ -100,3 +100,4 @@ main().catch((error) => {
   console.error(`\nnpm-repo-resolver error: ${error.message}\n`);
   process.exitCode = 1;
 });
+
