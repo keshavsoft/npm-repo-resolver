@@ -1,14 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { parsePackageSpec, validatePackage } from "../src/v1/1-gatekeeper/index.js";
 import {
-  parsePackageSpec,
-  validatePackage,
   normalizeRepoUrl,
   toCloneUrl,
   extractGitHubOwner,
   toSafeFolderName,
   resolveRepositories
-} from "../src/index.js";
+} from "../src/v1/3-detective/index.js";
 
 test("Gatekeeper: parses package spec, name, version, and owner", async () => {
   const parsed = parsePackageSpec("@keshavsoft/json-renderers@1.2.0");

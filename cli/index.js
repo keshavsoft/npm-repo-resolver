@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs/promises";
-import { resolveDependencyRepos } from "../src/index.js";
+import { resolveDependencyRepos } from "../src/v1/index.js";
 
 const packageJson = JSON.parse(
   await fs.readFile(new URL("../package.json", import.meta.url), "utf8")

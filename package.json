@@ -1,11 +1,12 @@
 {
   "name": "npm-repo-resolver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Recursively trace npm dependencies and discover authentic upstream Git repository remotes as a verified JSON Source of Truth.",
   "type": "module",
   "main": "./src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./v1": "./src/v1/index.js"
   },
   "bin": {
     "npm-repo-resolver": "cli/index.js"
@@ -18,7 +19,7 @@
   ],
   "scripts": {
     "test": "node --test",
-    "check": "node --check cli/index.js && node --check src/index.js"
+    "check": "node --check cli/index.js && node --check src/index.js && node --check src/v1/index.js"
   },
   "repository": {
     "type": "git",

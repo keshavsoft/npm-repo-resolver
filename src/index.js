@@ -1,63 +1,9 @@
 /**
- * @keshavsoft/npm-repo-resolver
- * ----------------------------------------------------------------------------
- * Recursively maps any npm package specification to its authentic upstream
- * Git repository remotes, producing a verified JSON Source of Truth.
- */
-
-import { validatePackage, parsePackageSpec } from "./1-gatekeeper/index.js";
-import { buildDependencyTree } from "./2-cartographer/index.js";
-import {
-  resolveRepositories,
-  normalizeRepoUrl,
-  toCloneUrl,
-  extractGitHubOwner,
-  toSafeFolderName
-} from "./3-detective/index.js";
-
-/**
- * Resolves all authentic upstream Git repositories for an npm package and its dependencies.
+ * npm-repo-resolver
  *
- * @param {string} packageSpec - e.g. "express", "react@18.2.0", "@keshavsoft/json-renderers"
- * @param {object} [options]
- * @param {function} [options.onProgress] - Optional progress event callback
- * @returns {Promise<Array<{ name: string, version: string|null, repoUrl: string, cloneUrl: string, folder: string, isInferred: boolean }>>}
+ * Root export pointing to V1 Engine:
+ * The 3-act story of discovering, mapping, and resolving upstream Git repository remotes.
  */
-export async function resolveDependencyRepos(packageSpec, options = {}) {
-  const onProgress = typeof options.onProgress === "function" ? options.onProgress : () => {};
 
-  // Act 1: The Gatekeeper - validate package identity
-  const target = await validatePackage(packageSpec);
-  onProgress({ act: 1, stage: "validated", target });
-
-  // Act 2: The Cartographer - build recursive dependency tree in isolation
-  onProgress({ act: 2, stage: "resolving", packageSpec: target.spec });
-  const tree = await buildDependencyTree(target.spec);
-  onProgress({ act: 2, stage: "tree-mapped", count: tree.length });
-
-  // Act 3: The Detective - trace Git provenance, fallback and deduplicate
-  const repositories = resolveRepositories(tree, target.owner);
-  onProgress({
-    act: 3,
-    stage: "resolved",
-    totalPackages: tree.length,
-    uniqueCount: repositories.length,
-    repositories
-  });
-
-  return repositories;
-}
-
-export {
-  validatePackage,
-  parsePackageSpec,
-  buildDependencyTree,
-  resolveRepositories,
-  normalizeRepoUrl,
-  toCloneUrl,
-  extractGitHubOwner,
-  toSafeFolderName
-};
-
-export default resolveDependencyRepos;
-
+export { resolveDependencyRepos, default } from "./v1/index.js";
+export * from "./v1/index.js";
