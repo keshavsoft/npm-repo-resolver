@@ -8,7 +8,7 @@
     ".": "./src/index.js"
   },
   "bin": {
-    "npm-repo-resolver": "./cli/index.js"
+    "npm-repo-resolver": "cli/index.js"
   },
   "files": [
     "src/",
