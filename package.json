@@ -1,0 +1,51 @@
+{
+  "name": "@keshavsoft/npm-repo-resolver",
+  "version": "1.0.0",
+  "description": "Recursively trace npm dependencies and discover authentic upstream Git repository remotes as a verified JSON Source of Truth.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "npm-repo-resolver": "./cli/index.js"
+  },
+  "files": [
+    "src/",
+    "cli/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check cli/index.js && node --check src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/keshavsoft/npm-repo-resolver.git"
+  },
+  "homepage": "https://github.com/keshavsoft/npm-repo-resolver#readme",
+  "bugs": {
+    "url": "https://github.com/keshavsoft/npm-repo-resolver/issues"
+  },
+  "author": "KeshavSoft",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@npmcli/arborist": "^10.0.4"
+  },
+  "keywords": [
+    "npm",
+    "dependency-tree",
+    "dependency-graph",
+    "git",
+    "provenance",
+    "repository",
+    "source-of-truth",
+    "manifest",
+    "arborist",
+    "resolver"
+  ],
+  "license": "MIT"
+}
