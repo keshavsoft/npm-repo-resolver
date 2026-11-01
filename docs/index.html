@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>npm-repo-resolver · Upstream Git Provenance as a Verified Source of Truth</title>
+  <meta name="description" content="Recursively trace npm dependencies and discover authentic upstream Git repository remotes as a verified JSON Source of Truth. Zero-git, fast, and composable.">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #ffffff;
+      color: #1f2328;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+    a {
+      color: #0969da;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .header {
+      border-bottom: 1px solid #d0d7de;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    .header-title {
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #1f2328;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-title span.badge {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #57606a;
+    }
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header-links a {
+      font-size: 0.95rem;
+      color: #656d76;
+    }
+    .header-links a:hover {
+      color: #0969da;
+    }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      color: #1f2328;
+      line-height: 1.2;
+    }
+    p.lead {
+      font-size: 1.25rem;
+      color: #656d76;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .command-box {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 18px 20px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 1.1rem;
+      color: #0969da;
+      margin-bottom: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .command-box code {
+      color: #0969da;
+      user-select: all;
+    }
+    .command-box code span.prompt {
+      color: #8c959f;
+      margin-right: 8px;
+      user-select: none;
+    }
+    .copy-btn {
+      background: #ffffff;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: #24292f;
+      font-family: inherit;
+      transition: background 0.15s ease;
+    }
+    .copy-btn:hover {
+      background: #f3f4f6;
+    }
+    h2 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      margin: 44px 0 16px;
+      color: #1f2328;
+      border-bottom: 1px solid #eaeef2;
+      padding-bottom: 8px;
+    }
+    p {
+      margin-bottom: 16px;
+      font-size: 1.05rem;
+      color: #1f2328;
+    }
+    ul {
+      margin: 0 0 24px 24px;
+    }
+    li {
+      margin-bottom: 8px;
+      font-size: 1.02rem;
+    }
+    pre {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #1f2328;
+      margin: 20px 0 32px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 24px 0 36px;
+    }
+    .card {
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 20px;
+      background: #ffffff;
+    }
+    .card h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #0969da;
+    }
+    .card p {
+      font-size: 0.95rem;
+      color: #57606a;
+      margin-bottom: 0;
+      line-height: 1.5;
+    }
+    .ecosystem-banner {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 32px 0;
+    }
+    .ecosystem-banner h3 {
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+      color: #1f2328;
+    }
+    .footer {
+      border-top: 1px solid #d0d7de;
+      padding: 36px 24px;
+      text-align: center;
+      color: #656d76;
+      font-size: 0.92rem;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    .footer a {
+      color: #0969da;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-title">
+      npm-repo-resolver
+      <span class="badge">v1.0.1</span>
+    </div>
+    <nav class="header-links">
+      <a href="https://www.npmjs.com/package/npm-repo-resolver" target="_blank" rel="noopener">npm</a>
+      <a href="https://github.com/keshavsoft/npm-repo-resolver" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/keshavsoft/npm-repo-resolver/blob/main/STRUCTURE.md" target="_blank" rel="noopener">Architecture</a>
+      <a href="https://keshavsoft.github.io/npm-source-explorer/">Suite Docs</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h1>Find the Authentic Repos.<br>Build the Source of Truth.</h1>
+    <p class="lead">
+      Recursively trace npm dependencies and discover authentic upstream Git repository remotes as a verified JSON Source of Truth.
+    </p>
+
+    <div class="command-box">
+      <code><span class="prompt">$</span>npx npm-repo-resolver &lt;package-name&gt;</code>
+      <button class="copy-btn" onclick="navigator.clipboard.writeText('npx npm-repo-resolver '); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy', 2000)">Copy</button>
+    </div>
+
+    <h2>Why We Built This</h2>
+    <p>
+      Before downloading gigabytes of source code or auditing packages, you first need a reliable, verified <strong>Source of Truth</strong>: What authentic Git repositories power this library and every single one of its recursive dependencies?
+    </p>
+    <p>
+      <code>npm-repo-resolver</code> solves this in pure, zero-Git isolation:
+    </p>
+    <ul>
+      <li><strong>Zero Disk Clones:</strong> Inspects manifests and graphs without touching your local workspace or executing untrusted lifecycle scripts.</li>
+      <li><strong>Transitive Graph Resolution:</strong> Employs <code>@npmcli/arborist</code> in an ephemeral sandbox to map the full transitive tree.</li>
+      <li><strong>Git Provenance Normalization:</strong> Standardizes diverse URLs (<code>git+https</code>, SCP, SSH) into canonical HTTPS Git remotes.</li>
+      <li><strong>Smart Owner Fallback:</strong> Automatically infers missing Git URLs for internal/monorepo packages that omit repository metadata.</li>
+    </ul>
+
+    <h2>The 3-Act Story Engine</h2>
+    <div class="grid">
+      <div class="card">
+        <h4>Act 1: The Gatekeeper</h4>
+        <p>Validates the package specification, parses scoped names (<code>@org/pkg</code>), and determines root identity and owner context.</p>
+      </div>
+      <div class="card">
+        <h4>Act 2: The Cartographer</h4>
+        <p>Recursively traverses the dependency tree using <code>@npmcli/arborist</code> in an ephemeral tmp workspace with 100% cleanup.</p>
+      </div>
+      <div class="card">
+        <h4>Act 3: The Detective</h4>
+        <p>Canonicalizes repository remotes, detects monorepo parent owners, deduplicates peers, and produces the final Source of Truth manifest.</p>
+      </div>
+    </div>
+
+    <h2>Usage & Output Formats</h2>
+
+    <pre>
+# 1. Output clean JSON stream (stdout)
+npx npm-repo-resolver express
+
+# 2. Pretty-print formatted JSON
+npx npm-repo-resolver json-renderers --pretty
+
+# 3. Print formatted console summary table
+npx npm-repo-resolver express --table
+
+# 4. Count unique repositories
+npx npm-repo-resolver react --count
+    </pre>
+
+    <h2>The Source of Truth: Data Contract</h2>
+    <p>Every execution streams a clean, deterministic JSON array:</p>
+
+    <pre>
+[
+  {
+    "name": "express",
+    "version": "4.18.2",
+    "repoUrl": "https://github.com/expressjs/express",
+    "cloneUrl": "https://github.com/expressjs/express.git",
+    "folder": "express",
+    "isInferred": false
+  },
+  {
+    "name": "accepts",
+    "version": "1.3.8",
+    "repoUrl": "https://github.com/jshttp/accepts",
+    "cloneUrl": "https://github.com/jshttp/accepts.git",
+    "folder": "accepts",
+    "isInferred": false
+  }
+]
+    </pre>
+
+    <h2>Composable UNIX Pipelines</h2>
+    <p>
+      Because status updates are directed to <code>stderr</code>, standard output is pure JSON. You can pipe directly into jq or into our sibling cloner:
+    </p>
+
+    <pre>
+# Pipe directly into git-sibling-cloner to download all sources
+npx npm-repo-resolver express | npx git-sibling-cloner ./sources
+
+# Extract all clone URLs with jq
+npx npm-repo-resolver express | jq -r '.[].cloneUrl'
+    </pre>
+
+    <div class="ecosystem-banner">
+      <h3>The KeshavSoft Decoupled Ecosystem</h3>
+      <p style="margin-bottom: 8px;">
+        🔍 <strong>npm-repo-resolver:</strong> Resolves dependencies into a Git Source of Truth manifest.
+      </p>
+      <p style="margin-bottom: 8px;">
+        📥 <a href="https://keshavsoft.github.io/git-sibling-cloner/"><strong>git-sibling-cloner:</strong></a> Fast, fail-safe shallow cloning of any repository manifest into sibling folders.
+      </p>
+      <p style="margin-bottom: 0;">
+        ⚡ <a href="https://keshavsoft.github.io/npm-source-explorer/"><strong>npm-source-explorer:</strong></a> The unified flagship suite that orchestrates both tools.
+      </p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>
+      Released under the <a href="https://github.com/keshavsoft/npm-repo-resolver/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>.
+      Created by <a href="https://github.com/keshavsoft" target="_blank" rel="noopener">KeshavSoft</a>.
+    </p>
+    <p style="margin-top: 8px; font-size: 0.85rem;">
+      <a href="https://keshavsoft.github.io/npm-repo-resolver/">Documentation</a> •
+      <a href="https://www.npmjs.com/package/npm-repo-resolver">npm</a> •
+      <a href="https://github.com/keshavsoft/npm-repo-resolver">GitHub</a> •
+      <a href="https://keshavsoft.github.io/git-sibling-cloner/">git-sibling-cloner</a> •
+      <a href="https://keshavsoft.github.io/npm-source-explorer/">npm-source-explorer</a>
+    </p>
+  </footer>
+
+</body>
+</html>
+
