@@ -9,13 +9,13 @@ const packageJson = JSON.parse(
 const VERSION = packageJson.version;
 
 function help() {
-  console.error(`@keshavsoft/npm-repo-resolver v${VERSION}
+  console.log(`npm-repo-resolver v${VERSION}
 
 Recursively trace npm dependencies and output canonical upstream Git repository remotes
 as a verified JSON Source of Truth.
 
 Usage:
-  npx @keshavsoft/npm-repo-resolver <package-name> [options]
+  npx npm-repo-resolver <package-name> [options]
 
 Options:
   --json        Output clean JSON manifest (default)
@@ -26,10 +26,10 @@ Options:
   -h, --help    Show help
 
 Examples:
-  npx @keshavsoft/npm-repo-resolver express
-  npx @keshavsoft/npm-repo-resolver @keshavsoft/json-renderers --pretty
-  npx @keshavsoft/npm-repo-resolver react > react-repos.json
-  npx @keshavsoft/npm-repo-resolver express | npx @keshavsoft/git-sibling-cloner
+  npx npm-repo-resolver express
+  npx npm-repo-resolver @keshavsoft/json-renderers --pretty
+  npx npm-repo-resolver react > react-repos.json
+  npx npm-repo-resolver express | npx git-sibling-cloner
 `);
 }
 
