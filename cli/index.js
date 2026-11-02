@@ -1,12 +1,9 @@
 #!/usr/bin/env node
 
 import fs from "node:fs/promises";
-import {
-  validatePackage,
-  resolveNpmNames,
-  resolveGitUrls,
-  resolveDependencyRepos
-} from "../src/v4/index.js";
+import { resolveDependencyRepos } from "../src/v4/index.js";
+import { collectNpmNames, validatePackage } from "npm-repo-resolver-names";
+import { resolveGitLinks } from "npm-repo-resolver-git";
 
 const packageJson = JSON.parse(
   await fs.readFile(new URL("../package.json", import.meta.url), "utf8")
@@ -16,27 +13,19 @@ const VERSION = packageJson.version;
 function help() {
   console.log(`npm-repo-resolver v${VERSION}
 
-Step-by-step NPM to Git Repository Explorer.
+Recursively discover authentic Git repository remotes for an npm package and its dependencies.
 
 Usage:
   npx npm-repo-resolver <package-name> [flags]
 
-The 3-Step Journey:
-  1. Guard / Validate:
-     npx npm-repo-resolver <pkg> --guard      Check if input is valid (YES / NO)
-
-  2. Recursive NPM Names:
-     npx npm-repo-resolver <pkg> --names      Return array of strings (NPM names only)
-
-  3. Git Links:
-     npx npm-repo-resolver <pkg> --urls       Return array of Git repository URLs
-     npx npm-repo-resolver <pkg> --table      Display human-readable summary table
-     npx npm-repo-resolver <pkg> --json       Output verified JSON Source of Truth
-
-General Options:
-  --count       Output only the total count of discovered repositories
-  --pretty      Output formatted JSON
-  -v, --version Show version number
+Flags:
+  --names       Output pure array of recursive npm package names
+  --urls        Output pure array of Git repository URLs
+  --table       Display human-readable summary table (default in terminal)
+  --json        Output verified JSON manifest
+  --count       Output only total unique repository count
+  --guard       Validate package name (YES / NO)
+  -v, --version Show version
   -h, --help    Show help
 `);
 }
@@ -65,9 +54,7 @@ async function main() {
   const isJson = flags.includes("--json");
   const isCount = flags.includes("--count");
 
-  // =========================================================================
-  // JOURNEY STEP 1: Guard / Validate (YES / NO)
-  // =========================================================================
+  // Step 1: Guard / Validate
   if (isGuard) {
     try {
       const target = validatePackage(packageSpec);
@@ -75,7 +62,6 @@ async function main() {
       console.log(`Package: ${target.name}`);
       console.log(`Version: ${target.version || "latest"}`);
       console.log(`Scope: ${target.scope || "none"}`);
-      console.log(`Owner: ${target.owner || "none"}`);
     } catch (err) {
       console.log(`Valid: NO`);
       console.error(`Error: ${err.message}`);
@@ -84,31 +70,26 @@ async function main() {
     return;
   }
 
-  // =========================================================================
-  // JOURNEY STEP 2: Recursive NPM Names Only (Array of strings)
-  // =========================================================================
+  // Step 2: Names only (delegates to npm-repo-resolver-names)
   if (isNames) {
-    console.error(`\n🔍 [Step 2] Collecting recursive npm package names for "${packageSpec}"...`);
-    const names = await resolveNpmNames(packageSpec);
+    console.error(`\n🔍 Collecting recursive npm package names for "${packageSpec}"...`);
+    const names = await collectNpmNames(packageSpec);
     console.error(`📦 Discovered ${names.length} npm dependency packages:\n`);
     console.log(JSON.stringify(names, null, 2));
     return;
   }
 
-  // =========================================================================
-  // JOURNEY STEP 3: Git URLs (Array of Git URL strings)
-  // =========================================================================
+  // Step 3: URLs only
   if (isUrls) {
-    console.error(`\n🔍 [Step 3] Resolving Git repository links for "${packageSpec}"...`);
-    const urls = await resolveGitUrls(packageSpec);
+    console.error(`\n🔍 Resolving Git repository links for "${packageSpec}"...`);
+    const repos = await resolveDependencyRepos(packageSpec);
+    const urls = repos.map((r) => r.repoUrl);
     console.error(`✨ Discovered ${urls.length} Git repository URLs:\n`);
     console.log(JSON.stringify(urls, null, 2));
     return;
   }
 
-  // =========================================================================
-  // FULL JOURNEY: Full Repository Resolution
-  // =========================================================================
+  // Full Pipeline: resolveDependencyRepos
   if (!isCount && !isJson) {
     console.error(`\n🔍 Resolving dependency repositories for "${packageSpec}"...`);
   }
@@ -120,7 +101,6 @@ async function main() {
     return;
   }
 
-  // Table output (default when interactive, or explicit --table)
   const isInteractive = Boolean(process.stdout.isTTY);
   if (isTable || (!isJson && isInteractive)) {
     console.error(`✨ Discovered ${repositories.length} authentic Git repositories:\n`);
@@ -133,11 +113,9 @@ async function main() {
         Inferred: r.isInferred ? "yes" : "no"
       }))
     );
-    console.error(`\n💡 Tip: Use --names for npm package array, --urls for Git URLs, or --json for raw data.`);
     return;
   }
 
-  // Default stdout for pipes / scripts / --json: JSON stream
   const jsonOutput = isPretty
     ? JSON.stringify(repositories, null, 2)
     : JSON.stringify(repositories);
@@ -145,7 +123,7 @@ async function main() {
   console.log(jsonOutput);
 }
 
-main().catch((error) => {
-  console.error(`\nnpm-repo-resolver error: ${error.message}\n`);
+main().catch((err) => {
+  console.error(`\nnpm-repo-resolver error: ${err.message}\n`);
   process.exitCode = 1;
 });
