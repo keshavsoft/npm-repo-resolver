@@ -1,67 +1,46 @@
-/**
- * ============================================================================
- * npm-repo-resolver :: V1 Engine
- * ----------------------------------------------------------------------------
- * The 3-Act Story:
- *   Act 1: The Gatekeeper   (1-gatekeeper)   - Validate package & check identity
- *   Act 2: The Cartographer (2-cartographer) - Build recursive dependency tree
- *   Act 3: The Detective    (3-detective)    - Map authentic Git repos & fallback
- * ============================================================================
- */
-
-import { validatePackage, parsePackageSpec } from "./1-gatekeeper/index.js";
-import { buildDependencyTree } from "./2-cartographer/index.js";
-import {
-  resolveRepositories,
-  normalizeRepoUrl,
-  toCloneUrl,
-  extractGitHubOwner,
-  toSafeFolderName
-} from "./3-detective/index.js";
+import { validatePackage } from "./1-guard/index.js";
+import { collectNpmNames } from "./2-npm-names/index.js";
+import { resolveGitLinks } from "./3-git-links/index.js";
 
 /**
- * Resolves all authentic upstream Git repositories for an npm package and its dependencies.
- *
- * @param {string} packageSpec - e.g. "express", "react@18.2.0", "json-renderers"
- * @param {object} [options]
- * @param {function} [options.onProgress] - Optional progress event callback
- * @returns {Promise<Array<{ name: string, version: string|null, repoUrl: string, cloneUrl: string, folder: string, isInferred: boolean }>>}
+ * 3-Step Pipeline:
+ *   1-guard     : Validate incoming package spec
+ *   2-npm-names : Recursively collect all npm package names (Array of strings)
+ *   3-git-links : Check if Git links are present for each npm package
  */
 export async function resolveDependencyRepos(packageSpec, options = {}) {
-  const onProgress = typeof options.onProgress === "function" ? options.onProgress : () => {};
-
-  // Act 1: The Gatekeeper - validate package identity
-  const target = await validatePackage(packageSpec);
-  onProgress({ act: 1, stage: "validated", target });
-
-  // Act 2: The Cartographer - build recursive dependency tree in isolation
-  onProgress({ act: 2, stage: "resolving", packageSpec: target.spec });
-  const tree = await buildDependencyTree(target.spec);
-  onProgress({ act: 2, stage: "tree-mapped", count: tree.length });
-
-  // Act 3: The Detective - trace Git provenance, fallback and deduplicate
-  const repositories = resolveRepositories(tree, target.owner);
-  onProgress({
-    act: 3,
-    stage: "resolved",
-    totalPackages: tree.length,
-    uniqueCount: repositories.length,
-    repositories
+  const target = validatePackage(packageSpec);
+  const npmNames = await collectNpmNames(target.spec, options);
+  const gitLinks = await resolveGitLinks(npmNames, {
+    defaultOwner: target.owner,
+    ...options
   });
-
-  return repositories;
+  return gitLinks;
 }
 
-export {
-  validatePackage,
-  parsePackageSpec,
-  buildDependencyTree,
-  resolveRepositories,
-  normalizeRepoUrl,
-  toCloneUrl,
-  extractGitHubOwner,
-  toSafeFolderName
-};
+export async function resolveNpmNames(packageSpec, options = {}) {
+  const target = validatePackage(packageSpec);
+  return collectNpmNames(target.spec, options);
+}
+
+export async function resolveGitUrls(packageSpec, options = {}) {
+  const gitLinks = await resolveDependencyRepos(packageSpec, options);
+  return gitLinks.map((r) => r.repoUrl);
+}
+
+export async function resolveCloneUrls(packageSpec, options = {}) {
+  const gitLinks = await resolveDependencyRepos(packageSpec, options);
+  return gitLinks.map((r) => r.cloneUrl);
+}
+
+export async function resolveRepoMap(packageSpec, options = {}) {
+  const gitLinks = await resolveDependencyRepos(packageSpec, options);
+  return Object.fromEntries(gitLinks.map((r) => [r.name, r.repoUrl]));
+}
+
+export * from "./1-guard/index.js";
+export * from "./2-npm-names/index.js";
+export * from "./3-git-links/index.js";
 
 export default resolveDependencyRepos;
 

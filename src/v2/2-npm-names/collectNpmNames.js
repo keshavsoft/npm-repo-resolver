@@ -1,16 +1,13 @@
-/**
- * Act 2: The Cartographer
- * ----------------------------------------------------------------------------
- * Recursively maps the complete dependency tree of the package inside an
- * isolated temporary sandbox using @npmcli/arborist.
- */
-
 import Arborist from "@npmcli/arborist";
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
 
-export async function buildDependencyTree(packageSpec) {
+// Shared in-memory cache of package manifests discovered during tree resolution
+export const manifestCache = new Map();
+
+export async function collectNpmNames(packageSpec, options = {}) {
+  const onProgress = typeof options.onProgress === "function" ? options.onProgress : () => {};
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "npm-repo-resolver-"));
   const workspacePath = path.join(tempDir, "workspace");
 
@@ -25,6 +22,7 @@ export async function buildDependencyTree(packageSpec) {
       loglevel: "silent"
     });
 
+    onProgress({ stage: "reifying", packageSpec });
     try {
       await arborist.reify({
         add: [packageSpec],
@@ -38,7 +36,7 @@ export async function buildDependencyTree(packageSpec) {
     }
 
     const tree = await arborist.loadActual();
-    const dependencies = [];
+    const namesSet = new Set();
     const visited = new Set();
 
     function traverse(node) {
@@ -52,7 +50,8 @@ export async function buildDependencyTree(packageSpec) {
       const repository = node.package?.repository ?? null;
 
       if (pkgName) {
-        dependencies.push({
+        namesSet.add(pkgName);
+        manifestCache.set(pkgName, {
           name: pkgName,
           version: pkgVersion,
           repository
@@ -68,9 +67,13 @@ export async function buildDependencyTree(packageSpec) {
       traverse(child);
     }
 
-    return dependencies;
+    const names = Array.from(namesSet);
+    onProgress({ stage: "names-collected", count: names.length, names });
+    return names;
   } finally {
     await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
   }
 }
+
+export default collectNpmNames;
 

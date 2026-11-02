@@ -1,11 +1,4 @@
-/**
- * Act 1: The Gatekeeper
- * ----------------------------------------------------------------------------
- * Validates the target package specification and extracts package identity
- * (name, version, scope, owner).
- */
-
-export function parsePackageSpec(packageSpec) {
+export function validatePackage(packageSpec) {
   if (!packageSpec || typeof packageSpec !== "string" || !packageSpec.trim()) {
     throw new Error("Invalid target: package name must be a non-empty string.");
   }
@@ -39,7 +32,5 @@ export function parsePackageSpec(packageSpec) {
   };
 }
 
-export async function validatePackage(packageSpec) {
-  return parsePackageSpec(packageSpec);
-}
+export default validatePackage;
 
