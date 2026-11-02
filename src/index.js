@@ -4,4 +4,4 @@ export {
   resolveGitUrls,
   resolveRepoMap,
   default
-} from "./v2/index.js";
+} from "./v4/index.js";
