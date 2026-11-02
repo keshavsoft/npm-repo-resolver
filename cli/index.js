@@ -6,7 +6,7 @@ import {
   resolveNpmNames,
   resolveGitUrls,
   resolveDependencyRepos
-} from "../src/v2/index.js";
+} from "../src/v4/index.js";
 
 const packageJson = JSON.parse(
   await fs.readFile(new URL("../package.json", import.meta.url), "utf8")

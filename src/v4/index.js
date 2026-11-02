@@ -1,13 +1,14 @@
 import { validatePackage } from "./1-guard/index.js";
-import { collectNpmNames } from "./2-npm-names/index.js";
-import { resolveGitLinks } from "./3-git-links/index.js";
+import { collectNpmNames } from "npm-repo-resolver-names";
+import { resolveGitLinks } from "npm-repo-resolver-git";
 
 /**
- * 3-Step Pipeline:
- *   1-guard     : Validate incoming package spec
- *   2-npm-names : Recursively collect all npm package names (Array of strings)
- *   3-git-links : Check if Git links are present for each npm package
+ * v4 Engine - Composed from Decoupled Micro-Repos:
+ *   1-guard                 : Local input validation
+ *   npm-repo-resolver-names : Standalone dependency explorer repo
+ *   npm-repo-resolver-git   : Standalone Git link discoverer repo
  */
+
 export async function resolveDependencyRepos(packageSpec, options = {}) {
   const target = validatePackage(packageSpec);
   const npmNames = await collectNpmNames(target.spec, options);
@@ -38,9 +39,6 @@ export async function resolveRepoMap(packageSpec, options = {}) {
   return Object.fromEntries(gitLinks.map((r) => [r.name, r.repoUrl]));
 }
 
-export * from "./1-guard/index.js";
-export * from "./2-npm-names/index.js";
-export * from "./3-git-links/index.js";
+export { validatePackage, collectNpmNames, resolveGitLinks };
 
 export default resolveDependencyRepos;
-
