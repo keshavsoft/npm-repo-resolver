@@ -1,6 +1,6 @@
 {
   "name": "npm-repo-resolver",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "description": "Recursively trace npm dependencies and discover authentic upstream Git repository remotes as a verified JSON Source of Truth.",
   "type": "module",
   "main": "./src/index.js",
